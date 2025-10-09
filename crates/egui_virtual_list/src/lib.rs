@@ -55,6 +55,8 @@ pub struct VirtualList {
     /// Stores the index and visibility percentage of the last item that was at the top of the list
     last_top_most_item: Option<(usize, f32)>,
     last_resize: SystemTime,
+
+    scroll_to_item: Option<usize>,
 }
 
 impl Default for VirtualList {
@@ -81,6 +83,7 @@ impl VirtualList {
             hide_on_resize: Some(Duration::from_millis(100)),
             last_top_most_item: None,
             last_resize: SystemTime::now(),
+            scroll_to_item: None,
         }
     }
 
@@ -117,6 +120,11 @@ impl VirtualList {
         self.hide_on_resize = hide_on_resize.into();
     }
 
+    /// scroll to this index
+    pub fn scroll_to_item(&mut self, index: usize) {
+        self.scroll_to_item = Some(index);
+    }
+
     /// The layout closure gets called for each row with the index of the first item that should
     /// be displayed.
     /// It should return the number of items that were displayed in the row.
@@ -144,6 +152,10 @@ impl VirtualList {
                 }
             } else {
                 self.last_width = Some(available_width_rounded);
+            }
+
+            if let Some(scroll_index) = self.scroll_to_item.take() {
+                scroll_to_item_index_visibility = Some((scroll_index, 0.0));
             }
         }
 
